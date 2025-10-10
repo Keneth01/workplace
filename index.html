@@ -1,100 +1,72 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ㅤ</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Job Count</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: monospace;
+    background: #111;
+    color: #ccc;
+    height: 100vh;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+  }
 
-  <meta http-equiv="Permissions-Policy" content="clipboard-read/write=*, geolocation=(self)">
-  <style>
-    body, h2, input, .result-box, button { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #ccc;
-      padding: 20px;
-      overflow: hidden;
-      height: 100vh;
-      cursor: pointer;
-    }
-    .container {
-      max-width: 420px;
-      background: rgba(34,34,34,0.85);
-      border-radius:5px;
-      position: absolute;
-      top: 20px; /* Distance from top */
-      left: 50%; /* Center horizontally */
-      transform: translateX(-50%); /* Horizontal centering */
-      resize: both;
-      border:1px solid rgba(255,255,255,0.3);
-      opacity:0.5;
-      transition: opacity 0.5s ease;
-      display: none;
-      word-wrap: break-word;
-      padding: 10px;
-      height: auto;
-      min-height: 50px;
-    }
-    h2 {
-      font-weight:300;
-      font-size:20px;
-      padding:10px;
-      background-color: rgba(51,51,51,0.8);
-      border-radius:5px 5px 0 0;
-      color:#ccc;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-    }
-    input, .result-box {
-      width:100%;
-      padding:8px;
-      margin:6px 0;
-      border:1px solid #555;
-      border-radius:4px;
-      background:#000;
-      color:#ccc;
-      font-size:14px;
-      opacity:1;
-    }
-    input::placeholder { 
-      color:#888;
-    }
-    .result-box {
-      background:#000;
-      border-radius:5px;
-      font-size:14px;
-      white-space:pre-line;
-      user-select:text;
-      cursor:pointer;
-      transition:color 0.18s ease;
-      opacity:1;
-      color: #ccc;
-    }
-    .result-box:hover { 
-      background:#444; 
-    }
-    .timer {
-      font-size: 16px;
-      color: #ccc;
-      margin-top: 10px;
-    }
-  </style>
+  .container {
+    background: #000;
+    border-radius: 6px;
+    padding: 10px;
+    width: 280px;
+    display: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    border: 1px solid #444;
+  }
+
+  h2 { font-weight: normal; text-align: center; margin-bottom: 6px; font-size:16px; }
+
+  input {
+    width: 100%;
+    margin: 3px 0;
+    padding: 5px;
+    font-size: 13px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: #ccc;
+  }
+  input::placeholder { color: #555; }
+
+  .result-box {
+    margin-top:6px;
+    padding:6px;
+    background:#111;
+    border-radius:4px;
+    font-size:13px;
+    cursor:pointer;
+    white-space: pre-line;
+  }
+  .result-box:hover { background:#222; }
+
+  .timer { font-size:12px; text-align:center; margin-top:4px; color:#888; }
+</style>
 </head>
 <body>
 
 <div class="container" id="container">
-  <h2 id="dragHandle">
-    JOB COUNT
-  </h2>
-
+  <h2>JOB COUNT</h2>
   <input type="number" id="break1" placeholder="1st Break" oninput="saveAndCalculate()">
   <input type="number" id="lunch" placeholder="Lunch" oninput="saveAndCalculate()">
   <input type="number" id="break2" placeholder="2nd Break" oninput="saveAndCalculate()">
   <input type="number" id="eos" placeholder="EOS" oninput="saveAndCalculate()">
   <input type="text" id="station" placeholder="Station#" oninput="saveAndCalculate()">
-
   <div class="result-box" id="resultBox" onclick="copyToClipboard()">Click to Copy</div>
   <div id="timerDisplay" class="timer">Timer: 0s</div>
 </div>
@@ -104,19 +76,11 @@ const fields = ['break1','lunch','break2','eos','station'];
 const container = document.getElementById('container');
 const resultBox = document.getElementById('resultBox');
 const timerDisplay = document.getElementById('timerDisplay');
+let closeTimer, startTime, timerInterval;
 
-let closeTimer;
-let startTime;
-let timerInterval;
-
-container.style.opacity = 0.5;
-
-document.body.addEventListener('click', function(event) {
-  if (container.style.display === 'none') {
-    showCalculator();
-  } else if (!container.contains(event.target)) {
-    closeCalculator();
-  }
+document.body.addEventListener('click', e => {
+  if(container.style.display === 'none') showCalculator();
+  else if(!container.contains(e.target)) closeCalculator();
 });
 
 function showCalculator() {
@@ -133,15 +97,15 @@ function closeCalculator() {
 
 function startTimer() {
   timerInterval = setInterval(() => {
-    const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-    timerDisplay.textContent = `Timer: ${elapsedTime}s`;
+    const elapsed = Math.floor((Date.now() - startTime)/1000);
+    timerDisplay.textContent = `Timer: ${elapsed}s`;
   }, 1000);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
   fields.forEach(f => {
     const v = localStorage.getItem(f);
-    if (v) document.getElementById(f).value = v;
+    if(v) document.getElementById(f).value = v;
   });
   calculate();
 });
@@ -150,40 +114,38 @@ function saveAndCalculate() {
   const anyFilled = fields.some(id => document.getElementById(id).value.trim());
   fields.forEach(id => {
     const val = document.getElementById(id).value;
-    if (anyFilled) localStorage.setItem(id, val);
+    if(anyFilled) localStorage.setItem(id,val);
     else localStorage.removeItem(id);
   });
   calculate();
 }
 
 function calculate() {
-  const vals = fields.map(id => id === "station" ? document.getElementById(id).value : parseInt(document.getElementById(id).value) || 0);
-  const [b1, l, b2, e, station] = vals;
-  const res1 = b1 ? b1 : "", res2 = l ? (l - b1) : "", res3 = b2 ? (b2 - l) : "", res4 = e ? (e - b2) : "";
+  const vals = fields.map(id => id==='station'?document.getElementById(id).value:parseInt(document.getElementById(id).value)||0);
+  const [b1,l,b2,e,station] = vals;
+  const res1 = b1?b1:'', res2=l?(l-b1):'', res3=b2?(b2-l):'', res4=e?(e-b2):'';
   const lines = [];
-  if (e > 0) {
+  if(e>0){
     const today = new Date();
-    const date = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
-    lines.push(`EOD Report ${date}`, "");
+    const date = `${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getDate()).padStart(2,'0')}/${today.getFullYear()}`;
+    lines.push(`EOD Report ${date}`,'');
   }
   lines.push("Jobcount");
-  if (res1) lines.push(`1st Break: ${res1}`);
-  if (res2) lines.push(`Lunch: ${res2}`);
-  if (res3) lines.push(`2nd Break: ${res3}`);
-  if (res4) lines.push(`EOS: ${res4}`);
-  if (e > 0) {
+  if(res1) lines.push(`1st Break: ${res1}`);
+  if(res2) lines.push(`Lunch: ${res2}`);
+  if(res3) lines.push(`2nd Break: ${res3}`);
+  if(res4) lines.push(`EOS: ${res4}`);
+  if(e>0){
     lines.push(`Total: ${e}`);
-    if (station) lines.push("", `Station#: ${station}`);
-    lines.push("On time tagging, No Overbreak and Lunch");
-    lines.push("Complete assets: No Damage No Privacy screen");
+    if(station) lines.push('',`Station#: ${station}`);
+    lines.push("On time tagging, No Overbreak and Lunch","Complete assets: No Damage No Privacy screen");
   }
   resultBox.textContent = lines.join("\n");
 }
 
 function copyToClipboard() {
-  const text = resultBox.textContent;
   const ta = document.createElement('textarea');
-  ta.value = text;
+  ta.value = resultBox.textContent;
   document.body.appendChild(ta);
   ta.select();
   document.execCommand('copy');
@@ -194,16 +156,11 @@ function copyToClipboard() {
 
 function resetCloseTimer() {
   clearTimeout(closeTimer);
-  closeTimer = setTimeout(closeCalculator, 10000);
+  closeTimer = setTimeout(closeCalculator,10000);
 }
 
-container.addEventListener('mouseenter', () => {
-  container.style.opacity = 1;
-});
-
-container.addEventListener('mouseleave', () => {
-  container.style.opacity = 0.5;
-});
+container.addEventListener('mouseenter',()=>container.style.opacity=1);
+container.addEventListener('mouseleave',()=>container.style.opacity=0.7);
 </script>
 
 </body>
