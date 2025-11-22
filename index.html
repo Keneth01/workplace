@@ -123,7 +123,6 @@ function calculate() {
   const vals = fields.map(id => document.getElementById(id).value.trim());
   const [b1,l,b2,e,station] = vals;
 
-  // Try to parse numbers, but keep raw text if not numeric
   const numB1 = parseInt(b1);
   const numL  = parseInt(l);
   const numB2 = parseInt(b2);
@@ -131,7 +130,8 @@ function calculate() {
 
   const lines = [];
 
-  if(!isNaN(numE) && numE > 0){
+  // Always show EOD Report if EOS has any value (number or text)
+  if(e){
     const today = new Date();
     const date = `${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getDate()).padStart(2,'0')}/${today.getFullYear()}`;
     lines.push(`EOD Report ${date}`,'');
@@ -139,14 +139,14 @@ function calculate() {
 
   lines.push("Jobcount");
 
-  // Show either math result (if numeric) or raw text
   if(b1) lines.push(`1st Break: ${isNaN(numB1) ? b1 : numB1}`);
   if(l)  lines.push(`Lunch: ${(!isNaN(numL) && !isNaN(numB1)) ? (numL - numB1) : l}`);
   if(b2) lines.push(`2nd Break: ${(!isNaN(numB2) && !isNaN(numL)) ? (numB2 - numL) : b2}`);
   if(e)  lines.push(`EOS: ${(!isNaN(numE) && !isNaN(numB2)) ? (numE - numB2) : e}`);
 
-  if(!isNaN(numE) && numE > 0){
-    lines.push(`Total: ${numE}`);
+  // Always show Total if EOS has any value
+  if(e){
+    lines.push(`Total: ${isNaN(numE) ? e : numE}`);
     if(station) lines.push('',`Station#: ${station}`);
     lines.push("On time tagging, No Overbreak and Lunch","Complete assets: No Damage No Privacy screen");
   }
