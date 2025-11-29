@@ -119,6 +119,13 @@ function saveAndCalculate() {
   calculate();
 }
 
+// Helper: format values, replacing 0 with "Nmj"
+function formatValue(val, num) {
+  if(val === "0" || num === 0) return "Nmj";
+  if(!isNaN(num)) return num;
+  return val;
+}
+
 function calculate() {
   const vals = fields.map(id => document.getElementById(id).value.trim());
   const [b1,l,b2,e,station] = vals;
@@ -130,7 +137,6 @@ function calculate() {
 
   const lines = [];
 
-  // Always show EOD Report if EOS has any value (number or text)
   if(e){
     const today = new Date();
     const date = `${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getDate()).padStart(2,'0')}/${today.getFullYear()}`;
@@ -139,14 +145,34 @@ function calculate() {
 
   lines.push("Jobcount");
 
-  if(b1) lines.push(`1st Break: ${isNaN(numB1) ? b1 : numB1}`);
-  if(l)  lines.push(`Lunch: ${(!isNaN(numL) && !isNaN(numB1)) ? (numL - numB1) : l}`);
-  if(b2) lines.push(`2nd Break: ${(!isNaN(numB2) && !isNaN(numL)) ? (numB2 - numL) : b2}`);
-  if(e)  lines.push(`EOS: ${(!isNaN(numE) && !isNaN(numB2)) ? (numE - numB2) : e}`);
+  if(b1) lines.push(`1st Break: ${formatValue(b1,numB1)}`);
+  if(l)  {
+    if(!isNaN(numL) && !isNaN(numB1)) {
+      const diff = numL - numB1;
+      lines.push(`Lunch: ${diff===0 ? "Nmj" : diff}`);
+    } else {
+      lines.push(`Lunch: ${formatValue(l,numL)}`);
+    }
+  }
+  if(b2) {
+    if(!isNaN(numB2) && !isNaN(numL)) {
+      const diff = numB2 - numL;
+      lines.push(`2nd Break: ${diff===0 ? "Nmj" : diff}`);
+    } else {
+      lines.push(`2nd Break: ${formatValue(b2,numB2)}`);
+    }
+  }
+  if(e) {
+    if(!isNaN(numE) && !isNaN(numB2)) {
+      const diff = numE - numB2;
+      lines.push(`EOS: ${diff===0 ? "Nmj" : diff}`);
+    } else {
+      lines.push(`EOS: ${formatValue(e,numE)}`);
+    }
+  }
 
-  // Always show Total if EOS has any value
   if(e){
-    lines.push(`Total: ${isNaN(numE) ? e : numE}`);
+    lines.push(`Total: ${formatValue(e,numE)}`);
     if(station) lines.push('',`Station#: ${station}`);
     lines.push("On time tagging, No Overbreak and Lunch","Complete assets: No Damage No Privacy screen");
   }
